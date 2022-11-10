@@ -24,21 +24,9 @@ const DEFAULT_STEP_CHUNK_SIZE = 10
 
 type Item map[string]any
 
-//	type ItemReader[T any] interface {
-//		Read() chan T
-//	}
-//
-//	type ItemWriter[T any] interface {
-//		Write(chan Item)
-//	}
-//
-//	type ItemProcessor[I any, O any] interface {
-//		Write(chan I) chan O
-//	}
 type ItemReader[I any] func() (I, error)
-type ItemWriter[O any] func(o O) error
+type ItemWriter[O any] func(o []O) error
 type ItemProcessor[I any, O any] func(i I) (O, error)
-type ItemMapper[I any, O any] func(i I) (O, error)
 
 // https://docs.spring.io/spring-batch/docs/current/reference/html/domain.html#domainLanguageOfBatch
 type Step interface {
@@ -49,44 +37,41 @@ type DefaultStep[I any, O any] struct {
 	reader    ItemReader[I]
 	writer    ItemWriter[O]
 	processor ItemProcessor[I, O]
-	mapper    ItemMapper[I, O]
 	chunkSize int
 }
 
 func (step *DefaultStep[I, O]) Execute() (err error) {
 	log.Printf("Executing step %v\n", step.name)
-	// for i := 0; i < DEFAULT_STEP_CHUNK_SIZE; i++ {
 	for {
-		var item I
-		var value O
-		if item, err = step.reader(); err != nil {
-			return
-		}
-		if reflect.ValueOf(item).IsZero() {
-			//err = ErrStepNoValueToProcess
-			break
-		}
-		if step.processor != nil {
-
-			if value, err = step.processor(item); err != nil {
+		chunckedItems := make([]O, 0)
+		for i := 0; i < step.chunkSize; i++ {
+			var item I
+			var value O
+			if item, err = step.reader(); err != nil {
 				return
 			}
-		} else {
-			if data, ok := any(item).(O); ok {
-				value = data
+			log.Println("read item: ", item)
+			if reflect.ValueOf(item).IsZero() {
+				//err = ErrStepNoValueToProcess
+				break
 			}
-
-			/* if step.mapper == nil {
-				err = ErrMissingProcessorOrMapper
-				return
-			}
-			if value, err = step.mapper(item); err != nil {
-				if err = step.writer(value); err != nil {
+			if step.processor != nil {
+				log.Println("process item: ", item)
+				if value, err = step.processor(item); err != nil {
 					return
 				}
-			} */
+			} else {
+				if data, ok := any(item).(O); ok {
+					value = data
+				}
+			}
+			log.Printf("add item %v to chunk: %v\n", item, chunckedItems)
+			chunckedItems = append(chunckedItems, value)
 		}
-		if err = step.writer(value); err != nil {
+		if len(chunckedItems) == 0 {
+			break
+		}
+		if err = step.writer(chunckedItems); err != nil {
 			return
 		}
 	}
@@ -94,23 +79,10 @@ func (step *DefaultStep[I, O]) Execute() (err error) {
 	return
 }
 
-/* func (step *DefaultStep[I, O]) WithProcessor(writer ItemProcessor[I, O]) *DefaultStep[I, O] {
-
+func (step *DefaultStep[I, O]) WithChunkSizeOf(size int) *DefaultStep[I, O] {
+	step.chunkSize = size
 	return step
 }
-
-func (step *DefaultStep[I, O]) WithWriter(writer ItemWriter[O]) *DefaultStep[I, O] {
-	return step
-}
-
-func (step *DefaultStep[I, O]) WithReader(reader ItemReader[I]) *DefaultStep[I, O] {
-	return step
-}
-
-func NewStepBuilder[I any, O any]() *DefaultStep[I, O] {
-	return &DefaultStep[I, O]{}
-}
-*/
 
 func NewStep[I any, O any](reader ItemReader[I], processor ItemProcessor[I, O], writer ItemWriter[O]) *DefaultStep[I, O] {
 	stepInstance := DefaultStep[I, O]{}
