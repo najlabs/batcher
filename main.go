@@ -42,7 +42,7 @@ func main() {
 func readString(ctx *core.ReaderContext[string]) error {
 	id := uuid.NewString()
 	time.Sleep(time.Second * 1)
-	return ctx.AddNextItem(id)
+	return ctx.Process(id)
 }
 func writeString(ctx *core.WriterContext[string]) error {
 	for _, value := range ctx.ItemsToWrite() {
@@ -56,7 +56,7 @@ func read(ctx *core.ReaderContext[int]) error {
 	if index > 0 {
 		index--
 		ctx.UpdateIfExists("index", index)
-		return ctx.AddNextItem(index)
+		return ctx.Process(index)
 	}
 	return ctx.Done()
 }

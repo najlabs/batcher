@@ -30,20 +30,6 @@ type DefaultStep[I any, O any] struct {
 	chunkSize int
 }
 
-func (step *DefaultStep[I, O]) commitBuffer(readerCtx *ReaderContext[I]) (err error) {
-	log.Println("commit reader ")
-	println(readerCtx.bufferedItems)
-	if len(readerCtx.bufferedItems) == 0 {
-		return
-	}
-	writerCtx := NewWriterContext[O](readerCtx.store)
-
-	if writerCtx.itemToWrite, err = step.mapIO(readerCtx.bufferedItems); err == nil {
-		err = step.writer(writerCtx)
-		readerCtx.ResetBuffer()
-	}
-	return
-}
 func (step *DefaultStep[I, O]) mapIO(inputsData []I) ([]O, error) {
 	outputs := make([]O, 0)
 	log.Printf("inputsData: %#v, outputs %#v", inputsData, outputs)
@@ -56,88 +42,76 @@ func (step *DefaultStep[I, O]) mapIO(inputsData []I) ([]O, error) {
 	}
 	return outputs, nil
 }
-func (step *DefaultStep[I, O]) Execute() (err error) {
+func (step *DefaultStep[I, O]) executeStateReader(readerCtx *ReaderContext[I]) error {
+	switch err := step.reader(readerCtx); err {
+	case errContinue:
+		return step.executeStateReader(readerCtx)
+	case errCommitBuffered:
+		log.Println("committed reader ")
+		//err = step.commitBuffer(readerCtx)
+		return nil
+	case errSkip:
+		log.Println("skip reader ")
+		return step.executeStateReader(readerCtx)
+	default:
+		return err
+	}
+}
+func (step *DefaultStep[I, O]) executeStateWriter(ctx *WriterContext[O]) error {
+	switch err := step.writer(ctx); err {
+	case errContinue:
+		return step.executeStateWriter(ctx)
+	case errDone:
+		log.Println("Done writer ")
+		//_ = step.commitBuffer(readerCtx)
+		return nil
+	case errSkip:
+		log.Println("skip writer ")
+		return step.executeStateWriter(ctx)
+	default:
+		return err
+	}
+}
+func (step *DefaultStep[I, O]) Execute() error {
 	log.Printf("Executing step %v\n", step.name)
 	readerCtx := NewReaderContext[I](step.chunkSize)
-looplevel1:
 	for {
-		switch err = step.reader(readerCtx); err {
-		case readerCtx.Cancel():
-			log.Println("cancel reader ")
-			break looplevel1
-		case readerCtx.Continue():
-			continue
-		case readerCtx.CommitBuffered():
-			err = step.commitBuffer(readerCtx)
-		case readerCtx.Done():
-			log.Println("Done reader ")
-			_ = step.commitBuffer(readerCtx)
-			err = nil
-			break looplevel1
-		case readerCtx.Skip():
-			log.Println("continue reader ")
-			continue looplevel1
-		default:
-			log.Fatal(err)
-		}
-	}
-	log.Printf("Finishing step %v\n", step.name)
-	return
-}
-
-/* func (step *DefaultStep[I, O]) Execute() (err error) {
-	log.Printf("Executing step %v\n", step.name)
-	for {
-		chunckedItems := make([]O, 0)
-		for i := 0; i < step.chunkSize; i++ {
-			var item I
-			var value O
-			if item, err = step.reader(); err != nil {
-				return
-			}
-			log.Println("read item: ", item)
-			if reflect.ValueOf(item).IsZero() {
-				//err = ErrStepNoValueToProcess
+		if err := step.executeStateReader(readerCtx); err != nil {
+			if errors.Is(err, errDone) {
 				break
 			}
-			if step.processor != nil {
-				log.Println("process item: ", item)
-				if value, err = step.processor(item); err != nil {
-					return
-				}
-			} else {
-				if data, ok := any(item).(O); ok {
-					value = data
-				}
-			}
-			log.Printf("add item %v to chunk: %v\n", item, chunckedItems)
-			chunckedItems = append(chunckedItems, value)
+			return err
 		}
-		if len(chunckedItems) == 0 {
-			break
+		writerCtx := NewWriterContext[O](readerCtx.store)
+		var err error
+		if writerCtx.itemToWrite, err = step.mapIO(readerCtx.bufferedItems); err != nil {
+			return err
 		}
-		if err = step.writer(chunckedItems); err != nil {
-			return
+		if err = step.executeStateWriter(writerCtx); err != nil {
+			return err
 		}
+		readerCtx.ResetBuffer()
 	}
 	log.Printf("Finishing step %v\n", step.name)
-	return
-} */
+	return nil
+}
 
 func (step *DefaultStep[I, O]) WithChunkSizeOf(size int) *DefaultStep[I, O] {
 	step.chunkSize = size
 	return step
 }
 
-func NewStep[I any, O any](reader ItemReader[I], processor ItemProcessor[I, O], writer ItemWriter[O]) *DefaultStep[I, O] {
-	stepInstance := DefaultStep[I, O]{}
-	stepInstance.name = uuid.NewString()
-	stepInstance.reader = reader
-	stepInstance.writer = writer
-	stepInstance.chunkSize = DefaultStepChunkSize
-	stepInstance.processor = processor
-	return &stepInstance
-}
+/*
+	func NewStep[I any, O any](reader ItemReader[I], processor ItemProcessor[I, O], writer ItemWriter[O]) *DefaultStep[I, O] {
+		stepInstance := DefaultStep[I, O]{}
+		stepInstance.name = uuid.NewString()
+		stepInstance.reader = reader
+		stepInstance.writer = writer
+		stepInstance.chunkSize = DefaultStepChunkSize
+		stepInstance.processor = processor
+		return &stepInstance
+	}
+*/
 func NewSimpleStep[I any](reader ItemReader[I], writer ItemWriter[I]) *DefaultStep[I, I] {
 	stepInstance := DefaultStep[I, I]{}
 	stepInstance.name = uuid.NewString()

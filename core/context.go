@@ -36,18 +36,18 @@ func (ctx *BatchContext) GetOrElse(key string, defaultValue interface{}) interfa
 	}
 	return value
 }
-func (ctx *BatchContext) Continue() State {
+func (ctx *BatchContext) nextState() State {
 	return errContinue
-}
-func (ctx *BatchContext) CommitBuffered() State {
-	return errCommitBuffered
 }
 func (ctx *BatchContext) Done() State {
 	return errDone
 }
-func (ctx *BatchContext) Cancel() State {
-	return errCancel
-}
+
+/*
+	func (ctx *BatchContext) Cancel() State {
+		return errCancel
+	}
+*/
 func (ctx *BatchContext) Skip() State {
 	return errSkip
 }
@@ -61,13 +61,25 @@ type ReaderContext[I any] struct {
 func (ctx *ReaderContext[I]) ResetBuffer() {
 	ctx.bufferedItems = make([]I, 0, ctx.bufferSize)
 }
-func (ctx *ReaderContext[I]) AddNextItem(item I) State {
+func (ctx *ReaderContext[I]) commitState() State {
+	if len(ctx.bufferedItems) == 0 {
+		return errDone
+	}
+	return errCommitBuffered
+}
+func (ctx *ReaderContext[I]) Done() State {
+	if len(ctx.bufferedItems) > 0 {
+		return ctx.commitState()
+	}
+	return errDone
+}
+func (ctx *ReaderContext[I]) Process(item I) State {
 	ctx.bufferedItems = append(ctx.bufferedItems, item)
 	log.Printf("Add Next item %v size %v buffer %v", item, len(ctx.bufferedItems), ctx.bufferedItems)
 	if len(ctx.bufferedItems) == ctx.bufferSize {
-		return ctx.CommitBuffered()
+		return ctx.commitState()
 	}
-	return ctx.Continue()
+	return ctx.nextState()
 }
 
 /*func NewContext(bufferSize int) *BatchContext {
