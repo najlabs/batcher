@@ -7,7 +7,7 @@ import (
 )
 
 type Job interface {
-	Run() error
+	Run()
 }
 
 type defaultJob struct {
@@ -15,15 +15,14 @@ type defaultJob struct {
 	steps []Step
 }
 
-func (job *defaultJob) Run() error {
-	log.Printf("Start running job: %v with %d\n", job.name, len(job.steps))
+func (job *defaultJob) Run() {
+	log.Printf("Start running job: %v with %d steps\n", job.name, len(job.steps))
 	for _, step := range job.steps {
 		log.Println("----------------------------")
 		if err := step.Execute(); err != nil {
-			log.Fatal(err)
+			panic(err)
 		}
 	}
-	return nil
 }
 
 func NewJob(steps ...Step) Job {

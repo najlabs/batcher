@@ -3,31 +3,21 @@ package core
 import (
 	"errors"
 	"log"
-	"reflect"
 
 	"github.com/google/uuid"
 )
 
-type context interface {
-	Get(key string) interface{}
-	Put(key string, value interface{})
-}
-type ItemReaderContext interface {
-	context
-	ReadItem()
-}
+var ErrIncorrectMapper = errors.New("incorrect mapper")
 
-var ErrStepNoValueToProcess error = errors.New("Reading has no more value")
-var ErrMissingProcessorOrMapper error = errors.New("processor or mapper is required")
-
-const DEFAULT_STEP_CHUNK_SIZE = 10
+const DefaultStepChunkSize = 10
 
 type Item map[string]any
 
-type ItemReader[I any] func() (I, error)
-type ItemWriter[O any] func(o []O) error
-type ItemProcessor[I any, O any] func(i I) (O, error)
+type ItemReader[I any] func(ctx *ReaderContext[I]) error
+type ItemWriter[O any] func(ctx *WriterContext[O]) error
+type ItemProcessor[I any, O any] func(ctx *BatchContext, i I) (O, error)
 
+// Step is a building art of a job
 // https://docs.spring.io/spring-batch/docs/current/reference/html/domain.html#domainLanguageOfBatch
 type Step interface {
 	Execute() error
@@ -40,7 +30,62 @@ type DefaultStep[I any, O any] struct {
 	chunkSize int
 }
 
+func (step *DefaultStep[I, O]) commitBuffer(readerCtx *ReaderContext[I]) (err error) {
+	log.Println("commit reader ")
+	println(readerCtx.bufferedItems)
+	if len(readerCtx.bufferedItems) == 0 {
+		return
+	}
+	writerCtx := NewWriterContext[O](readerCtx.store)
+
+	if writerCtx.itemToWrite, err = step.mapIO(readerCtx.bufferedItems); err == nil {
+		err = step.writer(writerCtx)
+		readerCtx.ResetBuffer()
+	}
+	return
+}
+func (step *DefaultStep[I, O]) mapIO(inputsData []I) ([]O, error) {
+	outputs := make([]O, 0)
+	log.Printf("inputsData: %#v, outputs %#v", inputsData, outputs)
+	for _, inputItem := range inputsData {
+		outputItem, ok := any(inputItem).(O)
+		if !ok {
+			return outputs, ErrIncorrectMapper
+		}
+		outputs = append(outputs, outputItem)
+	}
+	return outputs, nil
+}
 func (step *DefaultStep[I, O]) Execute() (err error) {
+	log.Printf("Executing step %v\n", step.name)
+	readerCtx := NewReaderContext[I](step.chunkSize)
+looplevel1:
+	for {
+		switch err = step.reader(readerCtx); err {
+		case readerCtx.Cancel():
+			log.Println("cancel reader ")
+			break looplevel1
+		case readerCtx.Continue():
+			continue
+		case readerCtx.CommitBuffered():
+			err = step.commitBuffer(readerCtx)
+		case readerCtx.Done():
+			log.Println("Done reader ")
+			_ = step.commitBuffer(readerCtx)
+			err = nil
+			break looplevel1
+		case readerCtx.Skip():
+			log.Println("continue reader ")
+			continue looplevel1
+		default:
+			log.Fatal(err)
+		}
+	}
+	log.Printf("Finishing step %v\n", step.name)
+	return
+}
+
+/* func (step *DefaultStep[I, O]) Execute() (err error) {
 	log.Printf("Executing step %v\n", step.name)
 	for {
 		chunckedItems := make([]O, 0)
@@ -77,7 +122,7 @@ func (step *DefaultStep[I, O]) Execute() (err error) {
 	}
 	log.Printf("Finishing step %v\n", step.name)
 	return
-}
+} */
 
 func (step *DefaultStep[I, O]) WithChunkSizeOf(size int) *DefaultStep[I, O] {
 	step.chunkSize = size
@@ -89,7 +134,7 @@ func NewStep[I any, O any](reader ItemReader[I], processor ItemProcessor[I, O], 
 	stepInstance.name = uuid.NewString()
 	stepInstance.reader = reader
 	stepInstance.writer = writer
-	stepInstance.chunkSize = DEFAULT_STEP_CHUNK_SIZE
+	stepInstance.chunkSize = DefaultStepChunkSize
 	stepInstance.processor = processor
 	return &stepInstance
 }
@@ -98,6 +143,6 @@ func NewSimpleStep[I any](reader ItemReader[I], writer ItemWriter[I]) *DefaultSt
 	stepInstance.name = uuid.NewString()
 	stepInstance.reader = reader
 	stepInstance.writer = writer
-	stepInstance.chunkSize = DEFAULT_STEP_CHUNK_SIZE
+	stepInstance.chunkSize = DefaultStepChunkSize
 	return &stepInstance
 }
