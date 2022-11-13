@@ -35,17 +35,8 @@ type dummyAction struct {
 }
 
 func (d *dummyAction) Read(buffer []int) (int, error) {
-	itemsRead := 0
-	for i := 0; i < len(buffer) && d.index > 0; i++ {
-		buffer[i] = d.index
-		d.index--
-		time.Sleep(time.Second * 1)
-		itemsRead++
-	}
-	if d.index <= 0 {
-		return itemsRead, batcher.ErrEnd
-	}
-	return itemsRead, nil
+	fmt.Println("put data in buffer")
+	return 0, batcher.ErrEnd
 }
 func (d *dummyAction) Write(data []int) error {
 	fmt.Printf("write: %v\n", data)

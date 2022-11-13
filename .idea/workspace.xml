@@ -4,11 +4,9 @@
     <option name="autoReloadType" value="ALL" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="16a87d33-9473-41a3-accd-74b5665208b9" name="Changes" comment="adding interface and not method abstractions">
+    <list default="true" id="16a87d33-9473-41a3-accd-74b5665208b9" name="Changes" comment="update documentation">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/example/inline.go" beforeDir="false" afterPath="$PROJECT_DIR$/example/inline.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/example/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/example/main.go" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -160,7 +158,8 @@
     <MESSAGE value="add refactor modules" />
     <MESSAGE value="adding working step tests" />
     <MESSAGE value="adding interface and not method abstractions" />
-    <option name="LAST_COMMIT_MESSAGE" value="adding interface and not method abstractions" />
+    <MESSAGE value="update documentation" />
+    <option name="LAST_COMMIT_MESSAGE" value="update documentation" />
   </component>
   <component name="VgoProject">
     <settings-migrated>true</settings-migrated>
