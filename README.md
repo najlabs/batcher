@@ -23,27 +23,36 @@ func main() {
 	job.Run()
 }
 
-var step1 = batcher.NewStep(dummyStateReader(3), consoleWriter, batcher.WithChunkSize(5), batcher.WithName("Step1"))
-var step2 = batcher.NewStep(dummyStateReader(11), consoleWriter, batcher.WithChunkSize(5), batcher.WithName("Step2"))
+// create steps
+var step1 = batcher.NewStepAction(newDummyAction(3), batcher.WithChunkSize(5), batcher.WithName("Step1"))
+var step2 = batcher.NewStepAction(newDummyAction(11), batcher.WithChunkSize(5), batcher.WithName("Step2"))
 
-var consoleWriter batcher.ItemWriter[int] = func(i []int) error { fmt.Printf("write: %v\n", i); return nil }
-func dummyStateReader(index int) batcher.ItemReader[int] {
-	return func(buffer []int) (int, error) {
-		itemsRead := 0
-		for i := 0; i < len(buffer) && index > 0; i++ {
-			buffer[i] = index
-			index--
-			time.Sleep(time.Second * 1)
-			itemsRead++
-		}
-		if index <= 0 {
-			return itemsRead, batcher.ErrEnd
-		}
-		return itemsRead, nil
-	}
+func newDummyAction(index int) batcher.Step[int] {
+	return &dummyAction{index}
+}
+type dummyAction struct {
+	index int
 }
 
+func (d *dummyAction) Read(buffer []int) (int, error) {
+	itemsRead := 0
+	for i := 0; i < len(buffer) && d.index > 0; i++ {
+		buffer[i] = d.index
+		d.index--
+		time.Sleep(time.Second * 1)
+		itemsRead++
+	}
+	if d.index <= 0 {
+		return itemsRead, batcher.ErrEnd
+	}
+	return itemsRead, nil
+}
+func (d *dummyAction) Write(data []int) error {
+	fmt.Printf("write: %v\n", data)
+	return nil
+}
 ```
+for more example see the `./example` folder
 
 ## Domain language
 ### *Job* 
@@ -58,8 +67,8 @@ means for providing data from many different types of input like CSV, JSON, Data
 // read data from custom source and put in the buffer
 // return the number of data readed and error if any. 
 // returning error ErrEnd will mean you ar done with reading
-func(buffer []int) (int, error){
-	// your code here
+type ItemReader[INPUT any] interface {
+    Read([]INPUT) (int, error)
 }
 ```
 #### ItemMapper
@@ -67,8 +76,8 @@ for Processing or transforming readed data and passing it to Writer
 #### ItemWriter
 attempts to write out the list of items passed to given destination like CSV files, databases. Queues, ...
 ```go
-func(i []T) error {
-	
+type ItemWriter[OUTPUT any] interface {
+    Write([]OUTPUT) error
 }
 ```
 

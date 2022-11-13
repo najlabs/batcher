@@ -5,7 +5,7 @@ import (
 )
 
 func exampleWithListener() {
-	job := batcher.NewJob("JobX") //, batcher.BeforeEachStep(beforeEachStepListener), batcher.AfterEachStep(afterEachStepListener))
+	job := batcher.NewJob("JobX", batcher.BeforeEachStep(beforeEachStepListener), batcher.AfterEachStep(afterEachStepListener))
 	job.Steps(step1, step2)
 	job.Run()
 }
