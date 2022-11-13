@@ -13,12 +13,23 @@ var ErrEnd = errors.New("ErrEnd")
 // ItemReader read data from custom source and put in the buffer
 // return the number of data readed and error if any.
 // returning error batcher.ErrEnd will mean you ar done with reading
-type ItemReader[INPUT any] func([]INPUT) (int, error)
-type ItemWriter[OUTPUT any] func([]OUTPUT) error
+// type ItemReader[INPUT any] func([]INPUT) (int, error)
+type ItemReader[INPUT any] interface {
+	Read([]INPUT) (int, error)
+}
+type ItemWriter[OUTPUT any] interface {
+	Write([]OUTPUT) error
+}
+type Step[IOType any] interface {
+	Read([]IOType) (int, error)
+	Write([]IOType) error
+}
+
+// type ItemWriter[OUTPUT any] func([]OUTPUT) error
 type ItemMapper[INPUT any, OUTPUT any] func(INPUT) (OUTPUT, error)
 type StepOption func(*coreStep)
 type ExecutionListener func(*ExecutionContext)
-type Step interface {
+type StepExecutor interface {
 	execute() error
 	name() string
 }
@@ -50,9 +61,9 @@ func (step *UniStep[IOType]) execute() error {
 	log.Printf("Executing step %v\n", step.prop.name)
 	for {
 		chunckedItems := make([]IOType, step.prop.chunkSize)
-		n, err := step.reader(chunckedItems)
+		n, err := step.reader.Read(chunckedItems)
 		if n > 0 {
-			if werr := step.writer(chunckedItems[:n]); werr != nil {
+			if werr := step.writer.Write(chunckedItems[:n]); werr != nil {
 				return werr
 			}
 		}
@@ -67,6 +78,9 @@ func (step *UniStep[IOType]) execute() error {
 	return nil
 }
 
+func NewStepAction[IOType any](action Step[IOType], options ...StepOption) *UniStep[IOType] {
+	return NewStep[IOType](action, action, options...)
+}
 func NewStep[IOType any](reader ItemReader[IOType], writer ItemWriter[IOType], options ...StepOption) *UniStep[IOType] {
 	var uniStep = UniStep[IOType]{}
 	uniStep.reader = reader

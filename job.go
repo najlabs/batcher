@@ -8,14 +8,14 @@ type JobConfig func(*defaultJob)
 type JobListener func(*JobExecutionContext)
 type defaultJob struct {
 	name           string
-	steps          []Step
+	steps          []StepExecutor
 	beforeAllStep  JobListener
 	afterAllStep   JobListener
 	beforeEachStep JobListener
 	afterEachStep  JobListener
 }
 
-func (job *defaultJob) Steps(steps ...Step) {
+func (job *defaultJob) Steps(steps ...StepExecutor) {
 	job.steps = steps
 }
 
@@ -49,7 +49,7 @@ func (job *defaultJob) Run() {
 	}
 }
 
-func NewJobInline(name string, steps ...Step) *defaultJob {
+func NewJobInline(name string, steps ...StepExecutor) *defaultJob {
 	return &defaultJob{name: name, steps: steps}
 }
 func NewJob(name string, configs ...JobConfig) *defaultJob {

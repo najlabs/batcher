@@ -4,22 +4,13 @@
     <option name="autoReloadType" value="ALL" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="16a87d33-9473-41a3-accd-74b5665208b9" name="Changes" comment="add refactor modules">
-      <change afterPath="$PROJECT_DIR$/context.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/example/inline.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/example/main.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/job.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/step.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/step_test.go" afterDir="false" />
+    <list default="true" id="16a87d33-9473-41a3-accd-74b5665208b9" name="Changes" comment="adding interface and not method abstractions">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/go.mod" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/go.sum" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/job.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/step.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/go.mod" beforeDir="false" afterPath="$PROJECT_DIR$/go.mod" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/go.work" beforeDir="false" afterPath="$PROJECT_DIR$/go.work" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.go" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/example/inline.go" beforeDir="false" afterPath="$PROJECT_DIR$/example/inline.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/example/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/example/main.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/job.go" beforeDir="false" afterPath="$PROJECT_DIR$/job.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/step.go" beforeDir="false" afterPath="$PROJECT_DIR$/step.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/step_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/step_test.go" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -53,28 +44,28 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "DefaultGoTemplateProperty": "Go File",
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.go.format.on.save.advertiser.fired": "true",
-    "RunOnceActivity.go.formatter.settings.were.checked": "true",
-    "RunOnceActivity.go.migrated.go.modules.settings": "true",
-    "RunOnceActivity.go.modules.go.list.on.any.changes.was.set": "true",
-    "RunOnceActivity.go.watchers.conflict.with.on.save.actions.check.performed": "true",
-    "WebServerToolWindowFactoryState": "false",
-    "go.import.settings.migrated": "true",
-    "go.sdk.automatically.set": "true",
-    "last_opened_file_path": "C:/Users/jnanhou/POC/batcher/core",
-    "node.js.detected.package.eslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "rearrange.code.on.save": "true",
-    "run.code.analysis.last.selected.profile": "pProject Default",
-    "settings.editor.selected.configurable": "go"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;DefaultGoTemplateProperty&quot;: &quot;Go File&quot;,
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.go.format.on.save.advertiser.fired&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.go.formatter.settings.were.checked&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.go.migrated.go.modules.settings&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.go.modules.go.list.on.any.changes.was.set&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.go.watchers.conflict.with.on.save.actions.check.performed&quot;: &quot;true&quot;,
+    &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
+    &quot;go.import.settings.migrated&quot;: &quot;true&quot;,
+    &quot;go.sdk.automatically.set&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/jnanhou/POC/templatr_workspace&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;rearrange.code.on.save&quot;: &quot;true&quot;,
+    &quot;run.code.analysis.last.selected.profile&quot;: &quot;pProject Default&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;go&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="C:\Users\jnanhou\POC\batcher\core" />
@@ -84,25 +75,8 @@
       <recent name="C:\Users\jnanhou\POC\batcher\example" />
     </key>
   </component>
-  <component name="RunManager" selected="Go Build.go build github.com/najlabs/batcher/example">
-    <configuration default="true" type="GoApplicationRunConfiguration" factoryName="Go Application">
-      <module name="batcher" />
-      <working_directory value="$PROJECT_DIR$" />
-      <kind value="FILE" />
-      <directory value="$PROJECT_DIR$" />
-      <filePath value="$PROJECT_DIR$" />
-      <method v="2" />
-    </configuration>
-    <configuration name="go build github.com/najlabs/batcher/example" type="GoApplicationRunConfiguration" factoryName="Go Application" temporary="true" nameIsGenerated="true">
-      <module name="batcher" />
-      <working_directory value="$PROJECT_DIR$" />
-      <kind value="PACKAGE" />
-      <package value="github.com/najlabs/batcher/example" />
-      <directory value="$PROJECT_DIR$" />
-      <filePath value="$PROJECT_DIR$/example/main.go" />
-      <method v="2" />
-    </configuration>
-    <configuration name="TestNewStep in github.com/najlabs/batcher" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+  <component name="RunManager" selected="Go Test.TestNewStepAction_withNameOption in github.com/najlabs/batcher">
+    <configuration name="TestNewStepAction_withNameOption in github.com/najlabs/batcher" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
       <module name="batcher" />
       <working_directory value="$PROJECT_DIR$" />
       <kind value="PACKAGE" />
@@ -110,18 +84,7 @@
       <directory value="$PROJECT_DIR$" />
       <filePath value="$PROJECT_DIR$" />
       <framework value="gotest" />
-      <pattern value="^\QTestNewStep\E$" />
-      <method v="2" />
-    </configuration>
-    <configuration name="TestNewStep/simple_step in github.com/najlabs/batcher" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
-      <module name="batcher" />
-      <working_directory value="$PROJECT_DIR$" />
-      <kind value="PACKAGE" />
-      <package value="github.com/najlabs/batcher" />
-      <directory value="$PROJECT_DIR$" />
-      <filePath value="$PROJECT_DIR$" />
-      <framework value="gotest" />
-      <pattern value="^\QTestNewStep\E$/^\Qsimple_step\E$" />
+      <pattern value="^\QTestNewStepAction_withNameOption\E$" />
       <method v="2" />
     </configuration>
     <configuration name="TestNewStep_withNameOption in github.com/najlabs/batcher" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
@@ -135,7 +98,7 @@
       <pattern value="^\QTestNewStep_withNameOption\E$" />
       <method v="2" />
     </configuration>
-    <configuration name="TestUniStep_execute in github.com/najlabs/batcher" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+    <configuration name="TestUniStep_execute/execution_without_error in github.com/najlabs/batcher" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
       <module name="batcher" />
       <working_directory value="$PROJECT_DIR$" />
       <kind value="PACKAGE" />
@@ -143,25 +106,36 @@
       <directory value="$PROJECT_DIR$" />
       <filePath value="$PROJECT_DIR$" />
       <framework value="gotest" />
-      <pattern value="^\QTestUniStep_execute\E$" />
+      <pattern value="^\QTestUniStep_execute\E$/^\Qexecution_without_error\E$" />
       <method v="2" />
     </configuration>
-    <configuration default="true" type="GoTestRunConfiguration" factoryName="Go Test">
+    <configuration name="TestUniStep_execute/writer_execution_error in github.com/najlabs/batcher" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
       <module name="batcher" />
       <working_directory value="$PROJECT_DIR$" />
-      <kind value="DIRECTORY" />
+      <kind value="PACKAGE" />
+      <package value="github.com/najlabs/batcher" />
       <directory value="$PROJECT_DIR$" />
       <filePath value="$PROJECT_DIR$" />
+      <framework value="gotest" />
+      <pattern value="^\QTestUniStep_execute\E$/^\Qwriter_execution_error\E$" />
+      <method v="2" />
+    </configuration>
+    <configuration name="step_test.go" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+      <module name="batcher" />
+      <working_directory value="$PROJECT_DIR$" />
+      <kind value="FILE" />
+      <directory value="$PROJECT_DIR$" />
+      <filePath value="$PROJECT_DIR$/step_test.go" />
       <framework value="gotest" />
       <method v="2" />
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Go Build.go build github.com/najlabs/batcher/example" />
+        <item itemvalue="Go Test.TestNewStepAction_withNameOption in github.com/najlabs/batcher" />
+        <item itemvalue="Go Test.step_test.go" />
         <item itemvalue="Go Test.TestNewStep_withNameOption in github.com/najlabs/batcher" />
-        <item itemvalue="Go Test.TestUniStep_execute in github.com/najlabs/batcher" />
-        <item itemvalue="Go Test.TestNewStep in github.com/najlabs/batcher" />
-        <item itemvalue="Go Test.TestNewStep/simple_step in github.com/najlabs/batcher" />
+        <item itemvalue="Go Test.TestUniStep_execute/execution_without_error in github.com/najlabs/batcher" />
+        <item itemvalue="Go Test.TestUniStep_execute/writer_execution_error in github.com/najlabs/batcher" />
       </list>
     </recent_temporary>
   </component>
@@ -186,7 +160,9 @@
     <MESSAGE value="run steps with context" />
     <MESSAGE value="add module" />
     <MESSAGE value="add refactor modules" />
-    <option name="LAST_COMMIT_MESSAGE" value="add refactor modules" />
+    <MESSAGE value="adding working step tests" />
+    <MESSAGE value="adding interface and not method abstractions" />
+    <option name="LAST_COMMIT_MESSAGE" value="adding interface and not method abstractions" />
   </component>
   <component name="VgoProject">
     <settings-migrated>true</settings-migrated>
@@ -206,55 +182,38 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="DlvLineBreakpoint">
           <url>file://$PROJECT_DIR$/step.go</url>
-          <line>52</line>
+          <line>63</line>
           <option name="timeStamp" value="6" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="DlvLineBreakpoint">
           <url>file://$PROJECT_DIR$/step.go</url>
-          <line>51</line>
+          <line>62</line>
           <option name="timeStamp" value="9" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="DlvLineBreakpoint">
           <url>file://$PROJECT_DIR$/step.go</url>
-          <line>61</line>
+          <line>72</line>
           <option name="timeStamp" value="10" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="DlvLineBreakpoint">
           <url>file://$PROJECT_DIR$/step.go</url>
-          <line>54</line>
+          <line>65</line>
           <option name="timeStamp" value="12" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="DlvLineBreakpoint">
-          <url>file://$PROJECT_DIR$/step_test.go</url>
-          <line>24</line>
-          <option name="timeStamp" value="14" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
-          <url>file://$PROJECT_DIR$/step_test.go</url>
-          <line>16</line>
-          <option name="timeStamp" value="15" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
-          <url>file://$PROJECT_DIR$/step_test.go</url>
-          <line>12</line>
-          <option name="timeStamp" value="16" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
           <url>file://$PROJECT_DIR$/step.go</url>
-          <line>59</line>
+          <line>70</line>
           <option name="timeStamp" value="17" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="DlvLineBreakpoint">
           <url>file://$PROJECT_DIR$/step.go</url>
-          <line>55</line>
+          <line>66</line>
           <option name="timeStamp" value="18" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
-          <url>file://$PROJECT_DIR$/step_test.go</url>
-          <line>22</line>
-          <option name="timeStamp" value="19" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
+  </component>
+  <component name="com.intellij.coverage.CoverageDataManagerImpl">
+    <SUITE FILE_PATH="coverage/batcher$step_test_go.out" NAME="step_test.go Coverage Results" MODIFIED="1668303234299" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="GoCoverage" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
   </component>
 </project>
