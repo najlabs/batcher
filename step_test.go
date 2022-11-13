@@ -3,38 +3,47 @@ package batcher
 import (
 	"errors"
 	"fmt"
-	"io"
+	"log"
 	"reflect"
 	"testing"
 	"time"
 )
 
-func simpleStateReader() ItemReader[int] {
-	index := 2
-	return func(buffer []int) (int, error) {
-		itemsRead := 0
-		for i := 0; i < len(buffer) && index > 0; i++ {
-			buffer[i] = index
-			index--
-			time.Sleep(time.Second * 1)
-			itemsRead++
-		}
-		if index <= 0 {
-			return itemsRead, io.EOF
-		}
-		return itemsRead, nil
-	}
+type dummyStateReader struct {
+	index int
 }
 
-var simpleReader ItemReader[int] = func([]int) (int, error) { return 1, nil }
-var simpleReaderErr ItemReader[int] = func([]int) (int, error) { return 0, errors.New("err1") }
+func (d *dummyStateReader) Read(buffer []int) (int, error) {
+	itemsRead := 0
+	for i := 0; i < len(buffer) && d.index > 0; i++ {
+		buffer[i] = d.index
+		d.index--
+		time.Sleep(time.Second * 1)
+		itemsRead++
+	}
+	if d.index <= 0 {
+		return itemsRead, ErrEnd
+	}
+	return itemsRead, nil
+}
+func (d *dummyStateReader) Write(data []int) error {
+	fmt.Printf("write: %v\n", data)
+	return nil
+}
 
-// var simpleProcessor ItemMapper[int, int] = func(i int) (int, error) { return i + 1, nil }
-// var simpleProcessor2 ItemMapper[int, string] = func(i int) (string, error) { return fmt.Sprintf("%d", i+1), nil }
-var consoleWriter ItemWriter[int] = func(i []int) error { fmt.Printf("write: %v\n", i); return nil }
+type errReaderAndWriter struct{}
 
-// var consoleWriter1 ItemWriter[string] = func(i []string) error { fmt.Printf("write: %v\n", i); return nil }
-var consoleWriterErr ItemWriter[int] = func(i []int) error { fmt.Printf("write: %v\n", i); return errors.New("err") }
+func (d errReaderAndWriter) Read(buffer []int) (int, error) {
+	log.Println(buffer)
+	return 0, errors.New("err1")
+}
+func (d errReaderAndWriter) Write(data []int) error {
+	fmt.Printf("write: %v\n", data)
+	return errors.New("err")
+}
+
+var simpleReaderWriter = &dummyStateReader{2}
+var errorReaderWriter = &errReaderAndWriter{}
 
 func TestNewStep(t *testing.T) {
 	type args[IType any] struct {
@@ -47,8 +56,8 @@ func TestNewStep(t *testing.T) {
 		args args[int]
 		want *UniStep[int]
 	}{
-		{"simple step without option", args[int]{simpleReader, consoleWriter, nil}, &UniStep[int]{nil, simpleReader, consoleWriter}},
-		{"simple step with option", args[int]{simpleReader, consoleWriter, []StepOption{}}, &UniStep[int]{nil, simpleReader, consoleWriter}},
+		{"simple step without option", args[int]{simpleReaderWriter, simpleReaderWriter, nil}, &UniStep[int]{nil, simpleReaderWriter, simpleReaderWriter}},
+		{"simple step with option", args[int]{simpleReaderWriter, simpleReaderWriter, []StepOption{}}, &UniStep[int]{nil, simpleReaderWriter, simpleReaderWriter}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -77,9 +86,9 @@ func TestUniStep_execute(t *testing.T) {
 		fields  fields[int]
 		wantErr bool
 	}{
-		{"reader execution error", fields[int]{&coreStep{chunkSize: 1}, simpleReaderErr, consoleWriter}, true},
-		{"writer execution error", fields[int]{&coreStep{chunkSize: 1}, simpleStateReader(), consoleWriterErr}, true},
-		{"execution without error", fields[int]{&coreStep{chunkSize: 1}, simpleStateReader(), consoleWriter}, false},
+		{"reader execution error", fields[int]{&coreStep{chunkSize: 1}, errorReaderWriter, simpleReaderWriter}, true},
+		{"writer execution error", fields[int]{&coreStep{chunkSize: 1}, simpleReaderWriter, errorReaderWriter}, true},
+		{"execution without error", fields[int]{&coreStep{chunkSize: 1}, simpleReaderWriter, simpleReaderWriter}, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -88,7 +97,7 @@ func TestUniStep_execute(t *testing.T) {
 				reader: tt.fields.reader,
 				writer: tt.fields.writer,
 			}
-			if err := step.execute(); (err != nil) != tt.wantErr {
+			if err := step.execute(); ((err != nil) != tt.wantErr) || ((err == ErrEnd) && !tt.wantErr) {
 				t.Errorf("execute() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -102,9 +111,31 @@ func TestNewStep_withNameOption(t *testing.T) {
 		wantedName string
 		wantedSize int
 	}{
-		{"should have step1 and size 1", NewStep(simpleStateReader(), consoleWriter, WithName("step1"), WithChunkSize(1)), "step1", 1},
-		{"should have step2 name and size 90", NewStep(simpleStateReader(), consoleWriter, WithName("step2"), WithChunkSize(90)), "step2", 90},
-		{"should have step2 name and default size 90", NewStep(simpleStateReader(), consoleWriter, WithName("step2")), "step2", 10},
+		{"should have step1 and size 1", NewStep[int](simpleReaderWriter, simpleReaderWriter, WithName("step1"), WithChunkSize(1)), "step1", 1},
+		{"should have step2 name and size 90", NewStep[int](simpleReaderWriter, simpleReaderWriter, WithName("step2"), WithChunkSize(90)), "step2", 90},
+		{"should have step2 name and default size 90", NewStep[int](simpleReaderWriter, simpleReaderWriter, WithName("step2")), "step2", 10},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.step.prop.name != tt.wantedName {
+				t.Errorf("NewStep with incorrect name Option actual = %v, want %v", tt.step.prop.name, tt.wantedName)
+			}
+			if tt.step.prop.chunkSize != tt.wantedSize {
+				t.Errorf("NewStep with incorrect name Option actual = %v, want %v", tt.step.prop.chunkSize, tt.wantedSize)
+			}
+		})
+	}
+}
+func TestNewStepAction_withNameOption(t *testing.T) {
+	tests := []struct {
+		name       string
+		step       *UniStep[int]
+		wantedName string
+		wantedSize int
+	}{
+		{"should have step1 and size 1", NewStepAction[int](simpleReaderWriter, WithName("step1"), WithChunkSize(1)), "step1", 1},
+		{"should have step2 name and size 90", NewStepAction[int](simpleReaderWriter, WithName("step2"), WithChunkSize(90)), "step2", 90},
+		{"should have step2 name and default size 90", NewStepAction[int](simpleReaderWriter, WithName("step2")), "step2", 10},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
